@@ -10,4 +10,5 @@ type Options struct {
 	ExchangeName         string
 	ExchangeType         string
 	PoolTimeout          time.Duration
+	ReconnectDelay       time.Duration
 }
