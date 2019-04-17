@@ -8,7 +8,7 @@ import (
 
 func TestChannelPool(t *testing.T) {
 	t.Run("Success spawn pool", func(t *testing.T) {
-		conn, err := amqp.Dial("amqp://guest:guest@localhost:5673")
+		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
 		require.NoError(t, err)
 
 		opt := &Options{
@@ -28,7 +28,7 @@ func TestChannelPool(t *testing.T) {
 		require.Equal(t, 5, len(pool.chPool))
 	})
 	t.Run("Get channel, error after timeout", func(t *testing.T) {
-		conn, err := amqp.Dial("amqp://guest:guest@localhost:5673")
+		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
 		require.NoError(t, err)
 
 		opt := &Options{

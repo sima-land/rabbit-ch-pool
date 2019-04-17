@@ -9,7 +9,7 @@ import (
 func TestRabbit(t *testing.T) {
 	t.Run("test rabbit reconnect", func(t *testing.T) {
 		opt := &Options{
-			Addr:"amqp://guest:guest@localhost:5673",
+			Addr:"amqp://guest:guest@localhost:5672",
 			ReconnectDelay:1,
 		}
 		rabbit := NewRabbit(opt)
