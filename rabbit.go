@@ -36,6 +36,11 @@ func NewRabbit(opt *Options) *Rabbit {
 		opt:  opt,
 		sigs: make(chan os.Signal, 1),
 	}
+
+	if opt.ReconnectDelay == 0 {
+		opt.ReconnectDelay = reconnectDelay
+	}
+
 	conn, _ := r.connect()
 	r.connection = conn
 	signal.Notify(r.sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -58,12 +63,12 @@ func (r *Rabbit) handleReconnect() {
 				select {
 				case <-r.sigs:
 					return
-				case <-time.After(reconnectDelay):
+				case <-time.After(r.opt.ReconnectDelay):
 				}
 				continue
 			}
 		}
-		time.Sleep(reconnectDelay)
+		time.Sleep(r.opt.ReconnectDelay)
 	}
 }
 
@@ -87,7 +92,7 @@ func (r *Rabbit) changeConnection(connection *amqp.Connection) {
 }
 
 // PublishMessage publish message to queue
-func (r *Rabbit) PublishMessage(body, routingKey string) error {
+func (r *Rabbit) PublishMessage(msg amqp.Publishing, routingKey string) error {
 	if !r.isReady {
 		return ErrorNotConnected
 	}
@@ -101,15 +106,13 @@ func (r *Rabbit) PublishMessage(body, routingKey string) error {
 		routingKey,
 		false,
 		false,
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
+		msg,
+	)
 	if err != nil {
 		return err
 	}
 
-	r.log.Printf("Sent %s", body)
+	r.log.Printf("Sent %s", msg.Body)
 
 	err = r.chPool.Put(ch)
 	if err != nil {
