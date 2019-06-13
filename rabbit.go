@@ -3,7 +3,6 @@ package rabbit_ch_pool
 import (
 	"errors"
 	"github.com/streadway/amqp"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,7 +20,6 @@ var (
 
 // Rabbit service struct
 type Rabbit struct {
-	log        *log.Logger
 	opt        *Options
 	connection *amqp.Connection
 	chPool     Pooler
@@ -32,7 +30,6 @@ type Rabbit struct {
 // NewRabbit create new svc
 func NewRabbit(opt *Options) *Rabbit {
 	r := &Rabbit{
-		log:  log.New(os.Stdout, "", log.LstdFlags),
 		opt:  opt,
 		sigs: make(chan os.Signal, 1),
 	}
@@ -53,13 +50,10 @@ func (r *Rabbit) handleReconnect() {
 	for {
 		if r.connection.IsClosed() {
 			r.isReady = false
-			log.Println("Attempting to connect")
 
 			_, err := r.connect()
 
 			if err != nil {
-				log.Println("Failed to connect. Retrying...")
-
 				select {
 				case <-r.sigs:
 					return
@@ -82,7 +76,6 @@ func (r *Rabbit) connect() (*amqp.Connection, error) {
 
 	r.changeConnection(conn)
 	r.isReady = true
-	log.Println("Connected!")
 	return conn, nil
 }
 
@@ -111,8 +104,6 @@ func (r *Rabbit) PublishMessage(msg amqp.Publishing, routingKey string) error {
 	if err != nil {
 		return err
 	}
-
-	r.log.Printf("Sent %s", msg.Body)
 
 	err = r.chPool.Put(ch)
 	if err != nil {
